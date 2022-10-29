@@ -2,7 +2,20 @@ enum Sprite {
     characterIdle0,
     characterIdle1,
     characterIdle2,
-    characterIdle3
+    characterIdle3,
+    characterRunRight0,
+    characterRunRight1,
+    characterRunRight2,
+    characterRunRight3,
+    characterRunLeft0,
+    characterRunLeft1,
+    characterRunLeft2,
+    characterRunLeft3,
+}
+
+enum Key {
+    Right = "ArrowRight",
+    Left = "ArrowLeft",
 }
 
 let images: Map<Sprite,CanvasImageSource>;
@@ -14,17 +27,29 @@ function main() {
             [Sprite.characterIdle0, "images/character/idle/0.png"],
             [Sprite.characterIdle1, "images/character/idle/1.png"],
             [Sprite.characterIdle2, "images/character/idle/2.png"],
-            [Sprite.characterIdle3, "images/character/idle/3.png"]
+            [Sprite.characterIdle3, "images/character/idle/3.png"],
+            [Sprite.characterRunRight0, "images/character/run/right/0.png"],
+            [Sprite.characterRunRight1, "images/character/run/right/1.png"],
+            [Sprite.characterRunRight2, "images/character/run/right/2.png"],
+            [Sprite.characterRunRight3, "images/character/run/right/3.png"],
+            [Sprite.characterRunLeft0, "images/character/run/left/0.png"],
+            [Sprite.characterRunLeft1, "images/character/run/left/1.png"],
+            [Sprite.characterRunLeft2, "images/character/run/left/2.png"],
+            [Sprite.characterRunLeft3, "images/character/run/left/3.png"],
         ]
     );
     
-    const milliseconds: number = 60;
-    var x = 0;
+    document.addEventListener('keydown', function(event){
+        Environment.markKeyAsPressed(event.key as Key)
+    });
 
-    setInterval(() => {
-        Environment.getUpdated();
-        Environment.getRendered();
-    }, milliseconds);
+    document.addEventListener('keyup', function(event){
+        Environment.markKeyAsReleased(event.key as Key)
+    });
+
+    window.requestAnimationFrame(() => {
+        Environment.step();
+    });
 }
 
 
@@ -45,9 +70,15 @@ interface IDrawable {
 class Character implements IDrawable {
     x: number = 0;
     y: number = 0;
+    velocity: number = 0;
     currentSprite: Sprite = Sprite.characterIdle0;    
+    prevousSpriteTimeStamp: number = 0;
 
-    renewFrame() {
+    tryUpdateIdleSprite() {
+        if(Math.abs(this.velocity) > 4 || Environment.currentTimeStamp - this.prevousSpriteTimeStamp < 300) {
+            return;
+        }
+
         switch(this.currentSprite) {
             case Sprite.characterIdle0:
                 this.currentSprite = Sprite.characterIdle1;
@@ -58,13 +89,72 @@ class Character implements IDrawable {
             case Sprite.characterIdle2:
                 this.currentSprite = Sprite.characterIdle3;
                 break;
-            case Sprite.characterIdle3:
-                this.currentSprite = Sprite.characterIdle0;
-                break;
             default :
-                alert("Error "+ this.currentSprite!);
+                this.currentSprite = Sprite.characterIdle0;
         }
+        this.prevousSpriteTimeStamp = Environment.currentTimeStamp;
+    }
 
+    tryUpdateRunSprite() {
+        if(Math.abs(this.velocity) < 1 || Environment.currentTimeStamp - this.prevousSpriteTimeStamp < 70) {
+            return;
+        }
+        if(this.velocity > 0){
+            switch(this.currentSprite) {
+                case Sprite.characterRunRight0:
+                    this.currentSprite = Sprite.characterRunRight1;
+                    break;
+                case Sprite.characterRunRight1:
+                    this.currentSprite = Sprite.characterRunRight2;
+                    break;
+                case Sprite.characterRunRight2:
+                    this.currentSprite = Sprite.characterRunRight3;
+                    break;
+                default :
+                    this.currentSprite = Sprite.characterRunRight0;
+            }
+        }
+         else {
+            switch(this.currentSprite) {
+                case Sprite.characterRunLeft0:
+                    this.currentSprite = Sprite.characterRunLeft1;
+                    break;
+                case Sprite.characterRunLeft1:
+                    this.currentSprite = Sprite.characterRunLeft2;
+                    break;
+                case Sprite.characterRunLeft2:
+                    this.currentSprite = Sprite.characterRunLeft3;
+                    break;
+                default :
+                    this.currentSprite = Sprite.characterRunLeft0;
+            }
+        }
+        this.prevousSpriteTimeStamp = Environment.currentTimeStamp;
+    }
+
+
+    handleMotion() {
+        this.velocity *= Math.pow(0.95, Environment.timeDelta/10);
+        if(Math.abs(this.velocity) < 0.1) {
+            this.velocity = 0;
+        }
+        if(Environment.isKeyPressed.get(Key.Right)) {
+            this.velocity += 0.1 * Environment.timeDelta;
+        }
+        if(Environment.isKeyPressed.get(Key.Left)) {
+            this.velocity -= 0.1 * Environment.timeDelta;
+        }
+        this.x += this.velocity;
+    }
+
+    tryUpdateSprite() {
+        this.tryUpdateRunSprite();
+        this.tryUpdateIdleSprite();
+    }
+
+    getUpdated(){
+        this.handleMotion();
+        this.tryUpdateSprite();
     }
 
     getDrawnOnCanvas(canvas: Canvas) {
@@ -100,25 +190,52 @@ class Canvas {
 }
 
 let Environment: {
-    timer: number,
+    previousTimeStamp: number,
+    currentTimeStamp: number,
+    timeDelta: number,
+    isKeyPressed: Map <Key, Boolean>,
     canvas: Canvas,
     character: Character,
-    getUpdated(): void,
+    step(): void,
+    markKeyAsPressed(key: Key): void,
+    markKeyAsReleased(key: Key): void,
+    updateObjects(): void,
     getRendered(): void,
 } = {
-    timer: 0,
+
+    previousTimeStamp: Date.now(),
+    currentTimeStamp: Date.now(),
+    timeDelta: 0,
+    isKeyPressed: new Map <Key, Boolean> (),
     canvas: new Canvas("canvas"),
     character: new Character(),
 
-    getUpdated(): void {
-        this.timer++;
-        if(this.timer % 4 == 0) {
-            this.character.renewFrame();
-        }
+    markKeyAsPressed(key: Key): void {
+        this.isKeyPressed.set(key, true);
+    },
+
+    markKeyAsReleased(key: Key): void {
+        this.isKeyPressed.set(key, false);
+    },
+
+    updateObjects(): void {
+        this.character.getUpdated();
     },
 
     getRendered(): void {
         this.canvas.getCleared();
         this.canvas.draw(this.character);
+    },
+
+
+    step(): void {
+        this.previousTimeStamp = this.currentTimeStamp;
+        this.currentTimeStamp = Date.now();
+        this.timeDelta = Date.now() - this.previousTimeStamp;
+        Environment.updateObjects();
+        Environment.getRendered();
+        window.requestAnimationFrame(() => {
+            Environment.step();
+        });
     }
 }
