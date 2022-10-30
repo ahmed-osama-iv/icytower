@@ -18,11 +18,9 @@ enum Key {
     Left = "ArrowLeft",
 }
 
-let images: Map<Sprite,CanvasImageSource>;
-
 function main() {
 
-    images = loadImages(
+    const images = loadImages(
         [
             [Sprite.characterIdle0, "images/character/idle/0.png"],
             [Sprite.characterIdle1, "images/character/idle/1.png"],
@@ -68,11 +66,11 @@ interface IDrawable {
 }
 
 class Character implements IDrawable {
-    x: number = 0;
-    y: number = 0;
-    velocity: number = 0;
+    x = 0;
+    y = 0;
+    velocity = 0;
     currentSprite: Sprite = Sprite.characterIdle0;    
-    prevousSpriteTimeStamp: number = 0;
+    prevousSpriteTimeStamp = 0;
 
     tryUpdateIdleSprite() {
         if(Math.abs(this.velocity) > 4 || Environment.currentTimeStamp - this.prevousSpriteTimeStamp < 300) {
@@ -164,12 +162,14 @@ class Character implements IDrawable {
 
 
 class Canvas {
+    private readonly images: Map<Sprite, CanvasImageSource>;
     private readonly canvas: HTMLCanvasElement;
     private readonly context: CanvasRenderingContext2D;
     private readonly width: number;
     private readonly height: number;
 
-    constructor(id: string) {
+    constructor(id: string, images: Map<Sprite, CanvasImageSource>) {
+        this.images = images;
         this.canvas = document.getElementById(id) as HTMLCanvasElement;
         this.context = this.canvas.getContext("2d") as CanvasRenderingContext2D;
         this.width = this.canvas.width;
@@ -181,7 +181,7 @@ class Canvas {
     }
 
     drawSprite (sprite: Sprite, x: number, y: number){
-        this.context.drawImage(images.get(sprite)!, x, y);
+        this.context.drawImage(this.images.get(sprite)!, x, y);
     }
 
     getCleared() {
@@ -189,49 +189,35 @@ class Canvas {
     }
 }
 
-let Environment: {
-    previousTimeStamp: number,
-    currentTimeStamp: number,
-    timeDelta: number,
-    isKeyPressed: Map <Key, Boolean>,
-    canvas: Canvas,
-    character: Character,
-    step(): void,
-    markKeyAsPressed(key: Key): void,
-    markKeyAsReleased(key: Key): void,
-    updateObjects(): void,
-    getRendered(): void,
-} = {
+class Environment {
+    static previousTimeStamp = Date.now();
+    static currentTimeStamp = Date.now();
+    static timeDelta = 0;
+    static isKeyPressed = new Map<Key, boolean>();
+    static canvas = new Canvas("canvas");
+    static character = new Character();
 
-    previousTimeStamp: Date.now(),
-    currentTimeStamp: Date.now(),
-    timeDelta: 0,
-    isKeyPressed: new Map <Key, Boolean> (),
-    canvas: new Canvas("canvas"),
-    character: new Character(),
+    static markKeyAsPressed(key: Key): void {
+        Environment.isKeyPressed.set(key, true);
+    }
 
-    markKeyAsPressed(key: Key): void {
-        this.isKeyPressed.set(key, true);
-    },
+    static markKeyAsReleased(key: Key): void {
+        Environment.isKeyPressed.set(key, false);
+    }
 
-    markKeyAsReleased(key: Key): void {
-        this.isKeyPressed.set(key, false);
-    },
+    static updateObjects(): void {
+        Environment.character.getUpdated();
+    }
 
-    updateObjects(): void {
-        this.character.getUpdated();
-    },
+    static getRendered(): void {
+        Environment.canvas.getCleared();
+        Environment.canvas.draw(Environment.character);
+    }
 
-    getRendered(): void {
-        this.canvas.getCleared();
-        this.canvas.draw(this.character);
-    },
-
-
-    step(): void {
-        this.previousTimeStamp = this.currentTimeStamp;
-        this.currentTimeStamp = Date.now();
-        this.timeDelta = Date.now() - this.previousTimeStamp;
+    static step(): void {
+        Environment.previousTimeStamp = Environment.currentTimeStamp;
+        Environment.currentTimeStamp = Date.now();
+        Environment.timeDelta = Date.now() - Environment.previousTimeStamp;
         Environment.updateObjects();
         Environment.getRendered();
         window.requestAnimationFrame(() => {
