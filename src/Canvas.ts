@@ -1,6 +1,6 @@
 module Game {
     export class Canvas {
-        private _images: Map<Sprite, CanvasImageSource> = new Map<Sprite, CanvasImageSource>;
+        private _images: Map<Sprite, CanvasImageSource> = new Map<CharacterSprite, CanvasImageSource>;
         private readonly canvas: HTMLCanvasElement;
         private readonly context: CanvasRenderingContext2D;
         private readonly width: number;

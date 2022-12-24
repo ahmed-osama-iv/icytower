@@ -3,6 +3,7 @@ module Game {
         state: EnvironmentState,
         canvas: Canvas,
         character: Character,
+        floors: Floor[],
         step(): void,
         loadImages(spriteImages: [Sprite, string][]): void,
         markKeyAsPressed(key: Key): void,
@@ -13,6 +14,7 @@ module Game {
         state: new EnvironmentState(),
         canvas: new Canvas("canvas"),
         character: new Character(),
+        floors: [new Floor()],
 
         loadImages(spriteImages: [Sprite, string][]): void {
             this.canvas.loadImages(spriteImages);
@@ -33,6 +35,7 @@ module Game {
         getRendered(): void {
             this.canvas.getCleared();
             this.canvas.draw(this.character);
+            this.floors.forEach(floor => this.canvas.draw(floor));
         },
 
         step(): void {
@@ -47,18 +50,22 @@ module Game {
 
     Environment.loadImages(
         [
-            [Sprite.characterIdle0, "images/character/idle/0.png"],
-            [Sprite.characterIdle1, "images/character/idle/1.png"],
-            [Sprite.characterIdle2, "images/character/idle/2.png"],
-            [Sprite.characterIdle3, "images/character/idle/3.png"],
-            [Sprite.characterRunRight0, "images/character/run/right/0.png"],
-            [Sprite.characterRunRight1, "images/character/run/right/1.png"],
-            [Sprite.characterRunRight2, "images/character/run/right/2.png"],
-            [Sprite.characterRunRight3, "images/character/run/right/3.png"],
-            [Sprite.characterRunLeft0, "images/character/run/left/0.png"],
-            [Sprite.characterRunLeft1, "images/character/run/left/1.png"],
-            [Sprite.characterRunLeft2, "images/character/run/left/2.png"],
-            [Sprite.characterRunLeft3, "images/character/run/left/3.png"],
+            [CharacterSprite.Idle0, "images/character/idle/0.png"],
+            [CharacterSprite.Idle1, "images/character/idle/1.png"],
+            [CharacterSprite.Idle2, "images/character/idle/2.png"],
+            [CharacterSprite.Idle3, "images/character/idle/3.png"],
+            [CharacterSprite.RunRight0, "images/character/run/right/0.png"],
+            [CharacterSprite.RunRight1, "images/character/run/right/1.png"],
+            [CharacterSprite.RunRight2, "images/character/run/right/2.png"],
+            [CharacterSprite.RunRight3, "images/character/run/right/3.png"],
+            [CharacterSprite.RunLeft0, "images/character/run/left/0.png"],
+            [CharacterSprite.RunLeft1, "images/character/run/left/1.png"],
+            [CharacterSprite.RunLeft2, "images/character/run/left/2.png"],
+            [CharacterSprite.RunLeft3, "images/character/run/left/3.png"],
+            
+            [FloorSprite.RockLeft, "images/floor/rock/left.png"],
+            [FloorSprite.RockMiddle, "images/floor/rock/middle.png"],
+            [FloorSprite.RockRight, "images/floor/rock/right.png"],
         ]
     );
 

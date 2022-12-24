@@ -3,7 +3,7 @@ module Game {
         x: number = 0;
         y: number = 0;
         velocity: number = 0;
-        currentSprite: Sprite = Sprite.characterIdle0;
+        currentSprite: CharacterSprite = CharacterSprite.Idle0;
         previousSpriteTimeStamp: number = 0;
 
         tryUpdateIdleSprite(environmentState: EnvironmentState) {
@@ -12,52 +12,52 @@ module Game {
             }
 
             switch (this.currentSprite) {
-                case Sprite.characterIdle0:
-                    this.currentSprite = Sprite.characterIdle1;
+                case CharacterSprite.Idle0:
+                    this.currentSprite = CharacterSprite.Idle1;
                     break;
-                case Sprite.characterIdle1:
-                    this.currentSprite = Sprite.characterIdle2;
+                case CharacterSprite.Idle1:
+                    this.currentSprite = CharacterSprite.Idle2;
                     break;
-                case Sprite.characterIdle2:
-                    this.currentSprite = Sprite.characterIdle3;
+                case CharacterSprite.Idle2:
+                    this.currentSprite = CharacterSprite.Idle3;
                     break;
                 default :
-                    this.currentSprite = Sprite.characterIdle0;
+                    this.currentSprite = CharacterSprite.Idle0;
             }
             this.previousSpriteTimeStamp = environmentState.currentTimeStamp;
         }
 
         tryUpdateRunSprite(environmentState: EnvironmentState) {
-            if (Math.abs(this.velocity) < 1 || environmentState.currentTimeStamp - this.previousSpriteTimeStamp < 70) {
+            if (Math.abs(this.velocity) < 4 || environmentState.currentTimeStamp - this.previousSpriteTimeStamp < 70) {
                 return;
             }
             if (this.velocity > 0) {
                 switch (this.currentSprite) {
-                    case Sprite.characterRunRight0:
-                        this.currentSprite = Sprite.characterRunRight1;
+                    case CharacterSprite.RunRight0:
+                        this.currentSprite = CharacterSprite.RunRight1;
                         break;
-                    case Sprite.characterRunRight1:
-                        this.currentSprite = Sprite.characterRunRight2;
+                    case CharacterSprite.RunRight1:
+                        this.currentSprite = CharacterSprite.RunRight2;
                         break;
-                    case Sprite.characterRunRight2:
-                        this.currentSprite = Sprite.characterRunRight3;
+                    case CharacterSprite.RunRight2:
+                        this.currentSprite = CharacterSprite.RunRight3;
                         break;
                     default :
-                        this.currentSprite = Sprite.characterRunRight0;
+                        this.currentSprite = CharacterSprite.RunRight0;
                 }
             } else {
                 switch (this.currentSprite) {
-                    case Sprite.characterRunLeft0:
-                        this.currentSprite = Sprite.characterRunLeft1;
+                    case CharacterSprite.RunLeft0:
+                        this.currentSprite = CharacterSprite.RunLeft1;
                         break;
-                    case Sprite.characterRunLeft1:
-                        this.currentSprite = Sprite.characterRunLeft2;
+                    case CharacterSprite.RunLeft1:
+                        this.currentSprite = CharacterSprite.RunLeft2;
                         break;
-                    case Sprite.characterRunLeft2:
-                        this.currentSprite = Sprite.characterRunLeft3;
+                    case CharacterSprite.RunLeft2:
+                        this.currentSprite = CharacterSprite.RunLeft3;
                         break;
                     default :
-                        this.currentSprite = Sprite.characterRunLeft0;
+                        this.currentSprite = CharacterSprite.RunLeft0;
                 }
             }
             this.previousSpriteTimeStamp = environmentState.currentTimeStamp;
